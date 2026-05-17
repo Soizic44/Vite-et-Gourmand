@@ -2,7 +2,7 @@ version: '3.9'
 
 services:
   web:
-    build: ./docker
+    build: ./Docker
     container_name: php_apache
     ports:
       - "8080:80"
@@ -17,7 +17,7 @@ services:
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: vite&gourmand
+      MYSQL_DATABASE: vitegourmand
       MYSQL_USER: user
       MYSQL_PASSWORD: password
     ports:
