@@ -4,13 +4,25 @@ namespace App\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Routing\Annotation\Route;
 
-final class HomeController extends AbstractController
+require_once __DIR__ . '/../Database/connexion.php';
+
+class HomeController extends AbstractController
 {
     #[Route('/', name: 'home')]
     public function index(): Response
     {
-        return new Response(content:'Bienvenue sur votre accueil !');
+        $pdo = getPDO();
+
+        $sql = "SELECT * FROM commande";
+
+        $stmt = $pdo->query($sql);
+
+        $commandes = $stmt->fetchAll();
+
+        return $this->render('home/index.html.twig', [
+            'commandes' => $commandes
+        ]);
     }
 }
