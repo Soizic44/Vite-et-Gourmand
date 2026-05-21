@@ -9,10 +9,11 @@ use Symfony\Component\Routing\Annotation\Route;
 
 require_once __DIR__ . '/../Database/connexion.php';
 
+#[Route('/api/propose-plat-menu', name: 'api_propose_plat_menu_')]
 class ProposePlatMenuController extends AbstractController
 {
     /* READ ALL avec GET /api/propose-plat-menu */
-    #[Route('/api/propose-plat-menu', methods: ['GET'])]
+    #[Route('/', name: 'index', methods: ['GET'])]
     public function index(): JsonResponse
     {
         $pdo = getPDO();
@@ -30,9 +31,7 @@ class ProposePlatMenuController extends AbstractController
     }
 
     /* READ ONE avec GET /api/propose-plat-menu/{id} */
-
-    
-    #[Route('/api/propose-plat-menu/{id}', methods: ['GET'])]
+    #[Route('/show/{id}', name: 'show', methods: ['GET'])]
     public function show($id): JsonResponse
     {
         if (!is_numeric($id)) {
@@ -62,7 +61,7 @@ class ProposePlatMenuController extends AbstractController
     }
 
     /* CREATE avecPOST /api/propose-plat-menu */
-    #[Route('/api/propose-plat-menu', methods: ['POST'])]
+    #[Route('/create', name: 'create', methods: ['POST'])]
     public function create(Request $request): JsonResponse
     {
         $pdo = getPDO();
@@ -138,7 +137,7 @@ class ProposePlatMenuController extends AbstractController
     }
 
     /* DELETE /api/propose-plat-menu/{id} */
-    #[Route('/api/propose-plat-menu/{id}', methods: ['DELETE'])]
+    #[Route('/delete/{id}', name: 'delete', methods: ['DELETE'])]
     public function delete($id): JsonResponse
     {
         if (!is_numeric($id)) {
