@@ -3,7 +3,7 @@
 namespace App\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 
@@ -14,33 +14,25 @@ require_once __DIR__ . '/../Database/connexion.php';
 class MenuController extends AbstractController
 {
     /*READ ALL avec GET /api/menu*/
-    #[Route('/api/menu', methods: ['GET'])]
-    public function index(): JsonResponse
+    #[Route('/', name: 'index', methods: ['GET'])]
+    public function index(): Response
     {
         $pdo = getPDO();
-
         $sql = "SELECT * FROM menu";
         $stmt = $pdo->query($sql);
-
         $menus = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
-        return $this->json($menus);
+        return $this->json(['menus' => $menus]);
     }
 
     /*READ ONE avec GET /api/menu/{id}*/
-    #[Route('/api/menu/{id}', methods: ['GET'])]
-    public function show($id): JsonResponse
+    #[Route('/show/{id}', name: 'show', methods: ['GET'])]
+    public function show($id): Response
     {
         $pdo = getPDO();
-
         $sql = "SELECT * FROM menu WHERE idMenu = :id";
-
         $stmt = $pdo->prepare($sql);
-
-        $stmt->execute([
-            'id' => $id
-        ]);
-
+        $stmt->execute(['id' => $id]);
         $menu = $stmt->fetch(\PDO::FETCH_ASSOC);
 
         if (!$menu) {
@@ -51,8 +43,8 @@ class MenuController extends AbstractController
     }
 
     /*CREATE avec POST /api/menu*/
-    #[Route('/api/menu', methods: ['POST'])]
-    public function create(Request $request): JsonResponse
+    #[Route('/create', name: 'create', methods: ['POST'])]
+    public function create(Request $request): Response
     {
         $pdo = getPDO();
 
@@ -78,8 +70,8 @@ class MenuController extends AbstractController
     }
 
     /*UPDATE avec PUT /api/menu/{id}*/
-    #[Route('/api/menu/{id}', methods: ['PUT'])]
-    public function update($id, Request $request): JsonResponse
+    #[Route('/update/{id}', name: 'update', methods: ['PUT'])]
+    public function update($id, Request $request): Response
     {
         $pdo = getPDO();
 
@@ -144,8 +136,8 @@ class MenuController extends AbstractController
     }
 
     /* DELETE avec/api/menu/{id} */
-    #[Route('/api/menu/{id}', methods: ['DELETE'])]
-    public function delete($id): JsonResponse
+    #[Route('/delete/{id}', name: 'delete', methods: ['DELETE'])]
+    public function delete($id): Response
     {
         $pdo = getPDO();
 

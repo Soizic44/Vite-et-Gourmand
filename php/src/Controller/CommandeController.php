@@ -24,43 +24,61 @@ class CommandeController extends AbstractController
         return $this->json(['commandes' => $commandes]);
     }
 
-// CRUD : Création 
+// CRUD POST : Création de la commande
     #[Route('/create', name: 'new', methods: ['POST'])]
     public function new(Request $request): Response
     {
+        $pdo = getPDO();
         $data = json_decode($request->getContent(), true);
 
-        if (
-            !$data ||
-            !isset($data['date_cde']) ||
-            !isset($data['date_prestation']) ||
-            !isset($data['heure_livraison']) ||
-            !isset($data['prix_menu']) ||
-            !isset($data['nbre_personnes']) ||
-            !isset($data['prix_livraison']) ||
-            !isset($data['statut']) ||
-            !isset($data['pret_materiel']) ||
-            !isset($data['restitution_materiel']) ||
-            !isset($data['idMenu']) ||
-            !isset($data['idUtilisateur'])
-        ) {
-           return $this->json(['message' => 'Données invalides'], 400);
+         /* Vérification utilisateur */
+        $sqlUtilisateur = "SELECT * FROM utilisateur
+                           WHERE idUtilisateur = :id";
+
+        $stmtUtilisateur = $pdo->prepare($sqlUtilisateur);
+
+        $stmtUtilisateur->execute([
+            'id' => $data['idUtilisateur']
+        ]);
+
+        $utilisateur = $stmtUtilisateur->fetch();
+
+        if (!$utilisateur) {
+            return $this->json([
+                'message' => 'Utilisateur inexistant'], 404);
         }
 
-        $pdo = getPDO();
-        $sql = "INSERT INTO commande(date_prestation, heure_livraison,
-                prix_menu, nbre_personnes, prix_livraison, statut, 
+        /* Vérification */
+        $sqlMenu = "SELECT * FROM menu
+                    WHERE idMenu = :id";
+
+        $stmtMenu = $pdo->prepare($sqlMenu);
+
+        $stmtMenu->execute([
+            'id' => $data['idMenu']
+        ]);
+
+        $menu = $stmtMenu->fetch();
+
+        if (!$menu) {
+            return $this->json(['message' => 'Menu inexistant'], 404);
+        }
+
+        /* Crétion de la commande */
+        $sql = "INSERT INTO commande(numero_cde,date_cde, date_prestation, heure_livraison,
+                prix_menu, nbre_personne, prix_livraison, statut, 
                 pret_materiel, restitution_materiel, idMenu, idUtilisateur)
-                VALUES(:date_prestation, :heure_livraison, 
-                :prix_menu, :nbre_personnes, :prix_livraison, :statut, 
+                VALUES(:numero_cde, :date_cde, :date_prestation, :heure_livraison, 
+                :prix_menu, :nbre_personne, :prix_livraison, :statut, 
                 :pret_materiel, :restitution_materiel, :idMenu, :idUtilisateur)";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([
+            'numero_cde' => $data['numero_cde'],
             'date_cde' => $data['date_cde'],
             'date_prestation' => $data['date_prestation'],
             'heure_livraison' => $data['heure_livraison'],
             'prix_menu' => $data['prix_menu'],
-            'nbre_personnes' => $data['nbre_personnes'],
+            'nbre_personne' => $data['nbre_personne'],
             'prix_livraison' => $data['prix_livraison'],
             'statut' => $data['statut'],
             'pret_materiel' => $data['pret_materiel'],
@@ -70,20 +88,19 @@ class CommandeController extends AbstractController
         ]);
 
         // … Crée une nouvelle commande et la sauvegarde en base de données
-        
-        return $this->json(['message' => 'Commande créée', 'id' => $pdo->lastInsertId()],
-        statut: Response::HTTP_CREATED);  
+        return $this->json(['message' => 'Commande créée'], 
+        status: Response::HTTP_CREATED);
     }
 
 // CRUD : Lecture
-    #[Route('/show/{id}', name: 'show', methods: ['GET'])]
-    public function show(int $id): Response
+    #[Route('/show/{numero}', name: 'show', methods: ['GET'])]
+    public function show($numero): Response
     {
         $pdo = getPDO();
-        $sql = "SELECT * FROM commande WHERE numero_Cde = :id";
+        $sql = "SELECT * FROM commande WHERE numero_Cde = :numero";
         $stmt = $pdo->prepare($sql);
-        $stmt->execute(['id' => $id]);
-        $commandes = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        $stmt->execute(['numero' => $numero]);
+        $commandes = $stmt->fetch(\PDO::FETCH_ASSOC);
 
         if (!$commandes) {
             return $this->json(['message' => 'Commande introuvable'], 404);
@@ -94,20 +111,20 @@ class CommandeController extends AbstractController
     }
 
 // CRUD : Mise à jour / modification
-    #[Route('/edit/{id}', name: 'edit', methods: ['PUT'])]
-    public function edit(int $id): Response
+    #[Route('/edit/{numero}', name: 'edit', methods: ['PUT'])]
+    public function edit($numero, Request $request): Response
     {
-        $data = json_decode(file_get_contents('php://input'), true);
+        $data = json_decode($request->getContent(), true);
 
         $pdo = getPDO();
 
         /*Vérifie si la commande existe*/
 
         $checkSql = "SELECT * FROM commande
-                    WHERE numero_Cde = :id";
+                    WHERE numero_Cde = :numero";
         $checkStmt = $pdo->prepare($checkSql);
-        $checkStmt->execute(['id' => $id]);
-        $commande = $checkStmt->fetch();
+        $checkStmt->execute(['numero' => $numero]);
+        $commande = $checkStmt->fetch(\PDO::FETCH_ASSOC);
 
         /*Si aucune commande trouvée*/
 
@@ -116,51 +133,49 @@ class CommandeController extends AbstractController
         }
 
         /*Mise à jour*/
+        $data = json_decode($request->getContent(), true);
 
         $sql = "UPDATE commande
                 SET date_cde = :date_cde, date_prestation = :date_prestation,
                     heure_livraison = :heure_livraison, prix_menu = :prix_menu,
-                    nbre_personnes = :nbre_personnes, prix_livraison = :prix_livraison,
-                    statut = :statut, pret_materiel = :pret_materiel, restitution_materiel = :restitution_materiel,
-                    idMenu = :idMenu, idUtilisateur = :idUtilisateur
-                WHERE numero_Cde = :id";
+                    nbre_personne = :nbre_personne, prix_livraison = :prix_livraison,
+                    statut = :statut, pret_materiel = :pret_materiel, restitution_materiel = :restitution_materiel
+                WHERE numero_Cde = :numero";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([
             'date_cde' => $data['date_cde'],
             'date_prestation' => $data['date_prestation'],
             'heure_livraison' => $data['heure_livraison'],
             'prix_menu' => $data['prix_menu'],
-            'nbre_personnes' => $data['nbre_personnes'],
+            'nbre_personne' => $data['nbre_personne'],
             'prix_livraison' => $data['prix_livraison'],
             'statut' => $data['statut'],
             'pret_materiel' => $data['pret_materiel'],
             'restitution_materiel' => $data['restitution_materiel'],
-            'idMenu' => $data['idMenu'],
-            'idUtilisateur' => $data['idUtilisateur'],
-            'id' => $id
+            'numero' => $numero
         ]);
 
         // Récupérer la commande mise à jour pour la réponse
-        $stmt = $pdo->prepare("SELECT * FROM commande WHERE numero_Cde = :id");
-        $stmt->execute(['id' => $id]);
-        $updateCommande = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        $stmt = $pdo->prepare("SELECT * FROM commande WHERE numero_Cde = :numero");
+        $stmt->execute(['numero' => $numero]);
+        $updateCommande = $stmt->fetch(\PDO::FETCH_ASSOC);
 
         // … Edite la commande et le sauvegarde en base de données
         return $this->json(['message' => 'Commande modifiée','commandes' => $updateCommande]);
     }
 
 // CRUD : Suppression
-    #[Route('/delete/{id}', name: 'delete', methods: ['DELETE'])]
-    public function delete(int $id): Response
+    #[Route('/delete/{numero}', name: 'delete', methods: ['DELETE'])]
+    public function delete($numero): Response
     {
         $pdo = getPDO();
 
         /*Vérification*/
 
         $checkSql = "SELECT * FROM commande
-                     WHERE numero_Cde = :id";
+                     WHERE numero_Cde = :numero";
         $checkStmt = $pdo->prepare($checkSql);
-        $checkStmt->execute(['id' => $id]);
+        $checkStmt->execute(['numero' => $numero]);
         $commande = $checkStmt->fetch(\PDO::FETCH_ASSOC);
 
         if (!$commande) {
@@ -170,9 +185,9 @@ class CommandeController extends AbstractController
         /*Suppression*/
 
         $sql = "DELETE FROM commande
-                WHERE numero_Cde = :id";
+                WHERE numero_Cde = :numero";
         $stmt = $pdo->prepare($sql);
-        $stmt->execute(['id' => $id]);
+        $stmt->execute(['numero' => $numero]);
 
         // ... Supprime la commande de la base de données
         return $this->json(['message' => 'Commande supprimée'], Response::HTTP_OK);

@@ -3,7 +3,7 @@
 namespace App\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 
@@ -15,7 +15,7 @@ class UtilisateurController extends AbstractController
 {
     /* READ ALL avecGET /api/utilisateur */
     #[Route('/', name: 'index', methods: ['GET'])]
-    public function index(): JsonResponse
+    public function index(): Response
     {
         $pdo = getPDO();
 
@@ -27,8 +27,8 @@ class UtilisateurController extends AbstractController
     }
 
     /* READ ONE avec GET /api/utilisateur/{id}*/
-    #[Route('/api/utilisateur/{id}', methods: ['GET'])]
-    public function show($id): JsonResponse
+    #[Route('/show/{id}', name: 'show', methods: ['GET'])]
+    public function show($id): Response
     {
         $pdo = getPDO();
 
@@ -53,8 +53,8 @@ class UtilisateurController extends AbstractController
     }
 
     /* CREATE avec POST /api/utilisateur */
-    #[Route('/api/utilisateur', methods: ['POST'])]
-    public function create(Request $request): JsonResponse
+    #[Route('/create', name: 'create', methods: ['POST'])]
+    public function create(Request $request): Response
     {
         $pdo = getPDO();
 
@@ -88,8 +88,8 @@ class UtilisateurController extends AbstractController
     }
 
     /* UPDATE avec PUT /api/utilisateur/{id} */
-    #[Route('/api/utilisateur/{id}', methods: ['PUT'])]
-    public function update($id, Request $request): JsonResponse
+    #[Route('/update/{id}', name: 'update', methods: ['PUT'])]
+    public function update($id, Request $request): Response
     {
         $pdo = getPDO();
 
@@ -143,8 +143,8 @@ class UtilisateurController extends AbstractController
     }
 
     /* Supprimer avec DELETE /api/utilisateur/{id} */
-    #[Route('/api/utilisateur/{id}', methods: ['DELETE'])]
-    public function delete($id): JsonResponse
+    #[Route('/delete/{id}', name: 'delete', methods: ['DELETE'])]
+    public function delete($id): Response
     {
         $pdo = getPDO();
         // Vérifier si l'utilisateur existe
