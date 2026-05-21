@@ -6,10 +6,12 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 require_once __DIR__ . '/../Database/connexion.php';
 
 // création des routes CRUD pour la gestion des utilisateurs
+#[IsGranted('ROLE_ADMIN')]
 #[Route('/api/utilisateur', name: 'api_utilisateur_')]
 class UtilisateurController extends AbstractController
 {
@@ -103,6 +105,8 @@ class UtilisateurController extends AbstractController
     }
 
     /* CREATE avec POST /api/utilisateur */
+     // Prtotection CRUD avec IsGranted
+    #[IsGranted('ROLE_ADMIN')]
     #[Route('/create', name: 'create', methods: ['POST'])]
     public function create(Request $request): Response
     {
@@ -199,6 +203,8 @@ class UtilisateurController extends AbstractController
     }
 
     /* UPDATE avec PUT /api/utilisateur/{id} */
+    // Prtotection CRUD avec IsGranted
+    #[IsGranted('ROLE_ADMIN')]
     #[Route('/update/{id}', name: 'update', methods: ['PUT'])]
     public function update($id, Request $request): Response
     {
@@ -278,9 +284,12 @@ class UtilisateurController extends AbstractController
     }
 
     /* Supprimer avec DELETE /api/utilisateur/{id} */
+        // Prtotection CRUD avec IsGranted
+    #[IsGranted('ROLE_ADMIN')]
     #[Route('/delete/{id}', name: 'delete', methods: ['DELETE'])]
     public function delete($id): Response
     {
+
         // Validation ID
         if (!is_numeric($id) || $id <= 0) {
             return $this->json(['message' => 'ID invalide'], 400);

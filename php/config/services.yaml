@@ -9,6 +9,14 @@
 parameters:
 
 services:
+
+    PDO:
+        class: PDO
+        arguments:
+            - 'mysql:host=db;dbname=vitegourmand;charset=utf8'
+            - 'user'
+            - 'password'
+        
     # default configuration for services in *this* file
     _defaults:
         autowire: true      # Automatically injects dependencies in your services.
